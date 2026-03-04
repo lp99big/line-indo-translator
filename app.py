@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -35,30 +36,41 @@ def callback():
     return 'OK'
 
 
+def translate_text(text):
+    """翻譯並自動重試"""
+    for i in range(3):
+        try:
+
+            # 判斷中文
+            if any('\u4e00' <= c <= '\u9fff' for c in text):
+                return GoogleTranslator(source='zh-CN', target='id').translate(text)
+
+            # 判斷印尼文
+            elif any(word in text.lower() for word in ["apa", "saya", "kamu", "tidak", "ya"]):
+                return GoogleTranslator(source='id', target='zh-CN').translate(text)
+
+            # 其他語言 → 中文
+            else:
+                return GoogleTranslator(source='auto', target='zh-CN').translate(text)
+
+        except Exception as e:
+            print("Retry translation:", e)
+            time.sleep(1)
+
+    return "⚠️ 翻譯服務暫時無法使用"
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+
     user_text = event.message.text
 
-    try:
-        # 判斷是否含中文
-        if any('\u4e00' <= char <= '\u9fff' for char in user_text):
-            # 中文 -> 印尼
-            translated = GoogleTranslator(source='zh-CN', target='id').translate(user_text)
-        else:
-            # 印尼 -> 中文
-            translated = GoogleTranslator(source='id', target='zh-CN').translate(user_text)
+    translated = translate_text(user_text)
 
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=translated)
-        )
-
-    except Exception as e:
-        print("Translation Error:", e)
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="⚠️ 翻譯暫時失敗，請稍後再試")
-        )
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=translated)
+    )
 
 
 if __name__ == "__main__":
