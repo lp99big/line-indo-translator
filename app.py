@@ -41,17 +41,20 @@ def translate_text(text):
     for i in range(3):
         try:
 
-            # 判斷中文
+            # 中文 → 印尼
             if any('\u4e00' <= c <= '\u9fff' for c in text):
-                return GoogleTranslator(source='zh-CN', target='id').translate(text)
+                result = GoogleTranslator(source='zh-CN', target='id').translate(text)
+                return f"〔中文→ 印尼〕\n{result}"
 
-            # 判斷印尼文
+            # 印尼 → 中文
             elif any(word in text.lower() for word in ["apa", "saya", "kamu", "tidak", "ya"]):
-                return GoogleTranslator(source='id', target='zh-CN').translate(text)
+                result = GoogleTranslator(source='id', target='zh-CN').translate(text)
+                return f"〔印尼→ 中文〕\n{result}"
 
             # 其他語言 → 中文
             else:
-                return GoogleTranslator(source='auto', target='zh-CN').translate(text)
+                result = GoogleTranslator(source='auto', target='zh-CN').translate(text)
+                return f"〔翻譯→ 中文〕\n{result}"
 
         except Exception as e:
             print("Retry translation:", e)
@@ -67,10 +70,10 @@ def handle_message(event):
 
     translated = translate_text(user_text)
 
-line_bot_api.reply_message(
-    event.reply_token,
-    TextSendMessage(text=translated)
-)
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=translated)
+    )
 
 
 if __name__ == "__main__":
