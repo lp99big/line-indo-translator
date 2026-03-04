@@ -37,27 +37,29 @@ def callback():
 
 
 def translate_text(text):
-    """翻譯並自動重試"""
+
     for i in range(3):
+
         try:
 
             # 中文 → 印尼
             if any('\u4e00' <= c <= '\u9fff' for c in text):
+
                 result = GoogleTranslator(source='zh-CN', target='id').translate(text)
+
                 return f"〔中文→ 印尼〕\n{result}"
 
             # 印尼 → 中文
-            elif any(word in text.lower() for word in ["apa", "saya", "kamu", "tidak", "ya"]):
+            else:
+
                 result = GoogleTranslator(source='id', target='zh-CN').translate(text)
+
                 return f"〔印尼→ 中文〕\n{result}"
 
-            # 其他語言 → 中文
-            else:
-                result = GoogleTranslator(source='auto', target='zh-CN').translate(text)
-                return f"〔翻譯→ 中文〕\n{result}"
-
         except Exception as e:
+
             print("Retry translation:", e)
+
             time.sleep(1)
 
     return "⚠️ 翻譯服務暫時無法使用"
@@ -77,5 +79,7 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
+
     port = int(os.environ.get("PORT", 10000))
+
     app.run(host="0.0.0.0", port=port)
