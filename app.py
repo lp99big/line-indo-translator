@@ -67,10 +67,16 @@ def handle_message(event):
 
     translated = translate_text(user_text)
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=translated)
-    )
+# 判斷翻譯方向
+if any('\u4e00' <= c <= '\u9fff' for c in user_text):
+    message = f"〔🇹🇼→ 🇮🇩〕\n{translated}"
+else:
+    message = f"〔🇮🇩→ 🇹🇼〕\n{translated}"
+
+line_bot_api.reply_message(
+    event.reply_token,
+    TextSendMessage(text=message)
+)
 
 
 if __name__ == "__main__":
